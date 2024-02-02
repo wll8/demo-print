@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>sys-shim page</title>
+  </head>
+  <body>
+    <div>
+      <button onclick="tool.view(source, target)">预览</button>
+      <button onclick="tool.print(source)">打印</button>
+      <hr />
+      <div class="printPre">打印预览区</div>
+      <hr />
+      <div class="printBox" id="printBox">
+        <div>
+          <h3>这是需要打印的内容</h3>
+          <p>这是一些普通文本这是一些普通文本这是一些普通文本</p>
+          <div class="img">
+            <img src="https://www.hongqiye.com/favicon.ico" />
+          </div>
+          <table border="1">
+            <tr>
+              <th>Header 1</th>
+              <th>Header 2</th>
+            </tr>
+            <tr>
+              <td>row 1, cell 1</td>
+              <td>row 1, cell 2</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.source = document.querySelector(`#printBox`)
+      window.target = document.querySelector(`.printPre`)
+    </script>
+  </body>
+  <style>
+    .printBox {
+      border: 1px solid #000;
+      display: inline-block;
+      width: 181px;
+      text-align: center;
+    }
+    .printBox p {
+      padding-bottom: 10px;
+      border-bottom: 1px solid #000;
+    }
+    .printBox table {
+      width: 100%;
+    }
+  </style>
+</html>

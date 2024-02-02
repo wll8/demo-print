@@ -1,0 +1,7 @@
+{
+  "debug": false,
+  "browserArguments": "--trace-deprecation --disable-web-security --allow-running-insecure-content --no-displaying-insecure-content --ignore-certificate-errors",
+  "page": "page.html",
+  "page_": "https://www.baidu.com",
+  "pageShow": true
+}
