@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <img src="https://baidu.com/favicon.ico" alt="" />
+    <button id="connectBtn">连接</button>
+    <button id="sendBtn">打印自检页</button>
+    <script src="./usb.js"></script>
+    <script>
+      let selectedDevice; // 当前选择的设备
+
+      const getEndpoint = (device) => {
+        let inEndpoint = undefined;
+        let outEndpoint = undefined;
+
+        for (const { alternates } of device.configuration.interfaces) {
+          const alternate = alternates[0];
+          const USB_PRINTER_CLASS = 7;
+          if (alternate.interfaceClass !== USB_PRINTER_CLASS) {
+            continue;
+          }
+
+          for (const endpoint of alternate.endpoints) {
+            if (endpoint.type !== "bulk") {
+              continue;
+            }
+
+            if (endpoint.direction === "in") {
+              inEndpoint = endpoint.endpointNumber;
+            } else if (endpoint.direction === "out") {
+              outEndpoint = endpoint.endpointNumber;
+            }
+          }
+        }
+
+        return {
+          inEndpoint,
+          outEndpoint,
+        };
+      };
+
+      const connect = async () => {
+        let device = await getDevice();
+        if (!device) {
+          return;
+        }
+        selectedDevice = device;
+        await initDevice(device);
+      };
+
+      const getDevice = async () => {
+        const device = await navigator.usb
+          .requestDevice({ filters: [] })
+          .then((device) => {
+            return device;
+          })
+          .catch(() => {
+            return null;
+          });
+        return device;
+      };
+
+      const initDevice = async (device) => {
+        await device.open();
+        const { configurationValue, interfaces } = device.configuration;
+        await device.selectConfiguration(configurationValue || 0);
+        await device.claimInterface(interfaces[0].interfaceNumber || 0);
+      };
+
+      const sendCmd = async () => {
+        if (!selectedDevice) {
+          console.warn("请先配对设备");
+          return;
+        }
+        const cmd = new Uint8Array([0x1f, 0x1b, 0x1f, 0x67, 0x00]);
+        const { outEndpoint } = getEndpoint(selectedDevice);
+        selectedDevice.transferOut(outEndpoint, cmd);
+      };
+
+      const init = () => {
+        navigator.usb.addEventListener("connect", (e) => {
+          console.log("新连上的设备", e.device);
+        });
+
+        navigator.usb.addEventListener("disconnect", (e) => {
+          console.log("断开的设备", e.device);
+        });
+
+        const connectBtn = document.querySelector("#connectBtn");
+        connectBtn.addEventListener("click", connect);
+
+        const sendBtn = document.querySelector("#sendBtn");
+        sendBtn.addEventListener("click", sendCmd);
+      };
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>

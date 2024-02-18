@@ -1,0 +1,119 @@
+//打印
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="调用打印机";right=759;bottom=469;border="dialog frame";max=false)
+winform.add(
+btnEnumPrinters={cls="button";text="列出所有打印机";left=446;top=165;right=697;bottom=207;z=4};
+btnPrint={cls="button";text="调用API打印";left=446;top=46;right=697;bottom=88;z=1};
+btnPrintDefault={cls="button";text="默认打印机输出";left=446;top=105;right=697;bottom=147;z=5};
+btnWbPrint={cls="button";text="使用HTML打印";left=446;top=224;right=697;bottom=266;z=2};
+button={cls="button";text="web.form";left=449;top=282;right=700;bottom=324;z=6};
+edit={cls="edit";left=40;top=36;right=417;bottom=429;edge=1;multiline=1;z=3}
+)
+/*}}*/
+
+import win.dlg.print;
+import sys.printer;
+
+//调用打印对话框,GDI+打印
+winform.btnPrint.oncommand = function(id,event){
+
+    import win.dlg.print;
+    var printDlg = win.dlg.print(winform);
+    if(!printDlg.doModal()) return;
+    
+    var pdc = sys.printer.device(printDlg.hdc);
+    pdc.start(
+        function(hdcPrinter){
+            //GDI+绘图
+            import gdip.graphics;
+            import gdip.family;
+            import gdip.solidBrush;
+            
+            var graphics = gdip.graphics(hdcPrinter);
+            graphics.pageUnit = 2/*_UnitPixel,打印单位改为使用像素*/
+            
+            var brush = gdip.solidBrush(0xFFFF0000);
+            var family = gdip.family("宋体");
+            var strformat = gdip.stringformat(); 
+            var curFont = family.createFont(  15,2/*_GdipFontStyleItalic*/, 2/*_GdipUnitPixel*/)
+            graphics.drawString( "Hellow world! 打印测试!!"  , curFont
+            ,  gdip.RECTF(15,15,500,150), strformat,brush);
+            brush.delete()
+            curFont.delete()
+            strformat.delete();
+            family.delete(); 
+        }
+    );
+ 
+    //结束打印 
+    printDlg.free()   
+}
+
+//直接选定默认打印机输出
+winform.btnPrintDefault.oncommand = function(id,event){
+
+	var printer = sys.printer();
+    var pdc = printer.createDevice(
+        dmPaperSize = 9/*_DMPAPER_A4*/; //小票打印机可以设为0,普通打印机使用 _DMPAPER_ 前缀常量指定纸张大小，例如 _DMPAPER_A4 指定为A4纸
+        dmOrientation = 0;//横向打印为2,纵向打印为1
+        //dmPaperWidth = 800;//纸张宽度
+        //dmPaperLength = 580;//纸张长度
+    );
+
+    pdc.start(
+        function(hdcPrinter){
+            ::Gdi32.TextOut(hdcPrinter,20,20,"测试打印",4);	
+        }
+    );
+    
+    pdc.close();
+}
+
+//列出所有打印机
+winform.btnEnumPrinters.oncommand = function(id,event){
+
+    for printerName,serverName,attributes in sys.printer.each(){
+        winform.edit.print(printerName,serverName,attributes)
+    }
+}
+
+//HTML格式打印
+winform.btnWbPrint.oncommand = function(id,event){
+    import web.mshtml;
+    wbPrint = web.mshtml();
+    wbPrint.write("测试一下")
+    wbPrint.getDoc().execCommand("print")
+}
+
+winform.edit.oncommand = function(id,event){
+	
+}
+
+import win.ui;
+import web.form;
+
+winform.button.oncommand = function(id,event){
+		
+	import win.ui;
+	import web.form;
+
+	var winform2 = win.form( scroll=1;bottom=399;text="aardio Form";right=599 )
+	winform2.add(  )
+
+	//创建web窗体
+	var wb = web.form( winform2 , , , ,true/*securityTrusted*/ );
+	wb.html = /**
+	<body> 
+	Hello World
+  	
+	</body> 
+	**/
+	winform2.show() 
+	
+	wb.execWb(6,3,2)   //直接打印
+
+}
+
+winform.show() 
+win.loopMessage();

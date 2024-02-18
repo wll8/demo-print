@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绿色生鲜</title>
+    <style>
+        @media print,
+        screen {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            #print {
+                font-size: 10px;
+            }
+
+            #print hr {
+                border: none;
+                border-top: 1px dashed #000000;
+            }
+
+            #print p {
+                margin-bottom: 0;
+                margin-top: 3px;
+            }
+
+            #print p>img {
+                width: 100%;
+            }
+
+            #print>div:first-of-type p:first-child {
+                font-size: 25px;
+                text-align: center;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            #print>div:nth-of-type(2)>div table {
+                width: 100%;
+                text-align: center;
+            }
+
+            #print>div:nth-of-type(2)>div p:first-child {
+                font-weight: bold;
+                text-align: center;
+            }
+
+            #print>div:nth-of-type(2)>div:last-child td:first-child {
+                float: left;
+            }
+
+            #print>div:nth-of-type(2)>div:last-child td:last-child {
+                float: right;
+            }
+
+            #print>div:last-of-type p:first-of-type,
+            #print>div:last-of-type p:nth-of-type(2) {
+                text-align: center;
+            }
+        }
+
+        @media screen {
+            .print {
+                position: fixed;
+                top: 50%;
+                right: 0;
+                padding: 10px;
+                cursor: pointer;
+                transform: translateX(50%);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                transition: all 0.5s linear;
+                color: rgba(255, 0, 0, 0.5);
+            }
+
+            .print:hover {
+                transform: translateX(0) scale(1.1, 1.1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <span class="print" onclick="printView()">打印小票</span>
+    <!--startprint-->
+    <div id="print">
+        <div>
+            <p>XXX菜品发货单</p>
+            <p><img id="barcode" alt="条形码" /></p>
+        </div>
+
+        <div>
+            <div>
+                <p>订单信息</p>
+                <hr />
+                <p>订单编号：20210112000013</p>
+                <p>下单时间：2020-01-12 09:59:00</p>
+                <p>用户姓名：黄先生</p>
+                <p>联系方式：18234567890</p>
+            </div>
+
+            <div>
+                <p>配送信息</p>
+                <hr />
+                <p>配送时间：2020-01-12 即买即送</p>
+                <p>配送地址：广州市，天河区，福祥街道，景瑞申花壹号院6幢6室</p>
+                <p>相关备注：</p>
+            </div>
+
+            <div>
+                <p>商品明细</p>
+                <hr />
+                <table>
+                    <thead>
+                        <tr>
+                            <td>商品名称</td>
+                            <td>数量</td>
+                            <td>单价</td>
+                            <td>小计</td>
+                        </tr>
+                    </thead>
+                    <!-- 商品明细 -->
+                    <tbody>
+                        <tr>
+                            <td>绍三鲜</td>
+                            <td>1</td>
+                            <td>28</td>
+                            <td>28</td>
+                        </tr>
+                        <tr>
+                            <td>腰果鸡丁</td>
+                            <td>1</td>
+                            <td>15</td>
+                            <td>15</td>
+                        </tr>
+                        <tr>
+                            <td>酸菜鱼</td>
+                            <td>1</td>
+                            <td>28</td>
+                            <td>28</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <p>合计</p>
+                <hr />
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>件数</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>商品金额</td>
+                            <td>71</td>
+                        </tr>
+                        <tr>
+                            <td>运费</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td>优惠券</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>活动优惠</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>特权减免</td>
+                            <td>0.71</td>
+                        </tr>
+                        <tr>
+                            <td>实付金额</td>
+                            <td>75.29</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="text-align:center">
+            <hr />
+            <p>客服电话：400 888 8888</p>
+            <p>感谢惠顾，欢迎再次光临！</p>
+            <p><img src="https://res.wx.qq.com/wxdoc/dist/assets/img/WXACode.fa3d686a.png" style="width:42%;" alt="小程序码"></p>
+        </div>
+    </div>
+    <!--endprint-->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script>
+        JsBarcode("#barcode", "20220112000012", {
+            height: 50,
+            displayValue: false,
+            marginTop: 2,
+            marginBottom: 3
+        });
+
+        function printView() {
+            var bodyHtml = window.document.body.innerHTML;
+            var startTagStr = '<!--startprint-->'; //开始打印标识字符串有17个字符
+            var endTagStr = '<!--endprint-->'; //结束打印标识字符串
+            var printHtml = bodyHtml.substr(bodyHtml.indexOf(startTagStr) + 17);
+            printHtml = printHtml.substring(0, printHtml.indexOf(endTagStr));
+            window.document.body.innerHTML = printHtml; //把需要打印的指定内容赋给body.innerHTML
+            window.print(); //调用浏览器的打印功能打印指定区域
+            window.document.body.innerHTML = bodyHtml; //重新给页面内容赋值
+        }
+    </script>
+</body>
+</html>
