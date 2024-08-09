@@ -1,24 +1,57 @@
-document.addEventListener("DOMContentLoaded", async function () {
-  let text = await fetch(`https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js`).then(res => res.text())
-  text = text.replace(`define.amd`, `define.noamd`) // 避免如果页面上使用了 amd 时此脚本没有正常加载
-  eval(text)
+let msg = undefined;
 
+document.addEventListener("DOMContentLoaded", async function () {
   window.tool = {
     view,
     print,
   };
   if (window.Sys) {
-    new Sys().then(async (main) => {
-      window.main = main;
-      msg = new window.main.Msg();
-      window.main.form.show();
+    new Sys().then(async (shim) => {
+      msg = new shim.Msg()
+      window.shim = shim;
+      await shim.nativeMain.win.form._forms[window.ext.hwnd].show(true)
+      await shim.nativeMain.win.setText(window.ext.hwnd, `后台管理`)
+      let [, debugHwnd] = await shim.nativeMain.global.G.debugHwnd
+      // 隐藏调试台
+      await shim.nativeMain.win.show(debugHwnd, false)
+
+      // 从本地加载 html2canvas
+      let [, jsStr] = await shim.native.string.load(`lib/html2canvas.min.js`)
+      jsStr = jsStr.replace(`define.amd`, `define.noamd`) // 避免如果页面上使用了 amd 时此脚本没有正常加载
+      eval(jsStr)
     });
   } else {
     console.warn(`请在宿主中打开，才可以访问系统功能`);
   }
 });
 
-let msg = undefined;
+function cssHack(dom) {
+  if (dom.offsetWidth > 0 && dom.offsetHeight > 0) {
+    return {
+      reset(){}
+    }
+  } else {
+    const old = [
+      [`display`, ``],
+      [`position`, `fixed`],
+      [`zIndex`, 999],
+      [`left`, `100vw`],
+      [`top`, `100vh`],
+      [`backgroundColor`, `#fff`],
+    ].reduce((acc, [key, val]) => {
+      acc[key] = dom.style[key]
+      dom.style[key] = val
+      return acc
+    }, {})
+    return {
+      reset() {
+        Object.entries(old).forEach(([key, val]) => {
+          dom.style[key] = val
+        })
+      }
+    }
+  }
+}
 
 async function view(source, target) {
   const canvasdom = document.createElement("canvas");
@@ -38,8 +71,10 @@ async function view(source, target) {
   const url = canvas.toDataURL();
   return url;
 }
-async function print(source) {
-  const url = await view(source);
+async function print(dom) {
+  const hack = cssHack(dom)
+  const url = await view(dom);
+  hack.reset()
   console.log("打印", url);
   msg.emit(`img`, url);
 }
