@@ -41,3 +41,7 @@ window.tool.print(document.querySelector(`span`));
 浏览器的代码在 preload.js 中。服务器的代码在 sys.js 中，由 nodejs 运行，主要使用了 node-escpos 实现打印功能。
 
 exe 使用方式可参考 [sys-shim](https://github.com/wll8/sys-shim)。
+
+## 其他
+
+如果需要使用 A4 纸打印，可以查看 [a4](https://github.com/wll8/demo-print/blob/a4/page.html#L38) 分支。
