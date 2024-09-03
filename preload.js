@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   window.tool = {
     view,
     print,
+    getPrintList,
+    getPrintDefault,
   };
   if (window.Sys) {
     new Sys().then(async (shim) => {
@@ -54,14 +56,8 @@ function cssHack(dom) {
 }
 
 async function view(source, target) {
-  const canvasdom = document.createElement("canvas");
-  const width = parseInt(window.getComputedStyle(source).width, 10);
-  const height = parseInt(window.getComputedStyle(source).height, 10);
-  const scaleBy = Number((203 / 96).toFixed(2));
-  canvasdom.width = width * scaleBy;
-  canvasdom.height = height * scaleBy;
+  const hack = cssHack(source)
   const canvas = await html2canvas(source, {
-    scale: scaleBy,
     useCORS: true,
   }).catch((err) => console.log(err));
   if (target) {
@@ -69,12 +65,88 @@ async function view(source, target) {
     target.appendChild(canvas);
   }
   const url = canvas.toDataURL();
+  hack.reset()
   return url;
 }
-async function print(dom) {
-  const hack = cssHack(dom)
+async function print(dom, { printerName = ``, type = `` } = {}) {
   const url = await view(dom);
-  hack.reset()
   console.log("打印", url);
-  msg.emit(`img`, url);
+  if(type.toLowerCase() === `a4`) {
+    printByName({printerName, base64: url})
+  } else {
+    return msg.emit(`img`, url);
+  }
+}
+// 获取所有打印机
+async function getPrintList() {
+  const tag = `tag${Date.now()}`
+  const msg = new window.shim.Msg()
+  let list = []
+  msg.on(tag, (out) => {
+    list.push(out)
+  })
+  let [, read] = await window.shim.ws.call(
+    `run`,
+    [
+      `
+      for printerName,serverName,attributes in sys.printer.each(){
+        thread.command.publish("${tag}", {
+          printerName = printerName,
+          serverName = serverName,
+          attributes = attributes,
+        })
+      }
+        
+      `,
+    ],
+  )
+  msg.off(tag)
+  return list
+}
+// 获取默认打印机名称
+async function getPrintDefault() {
+  let [, read] = await window.shim.ws.call(
+    `run`,
+    [
+      `
+      return sys.printer.default()
+        
+      `,
+    ],
+  )
+  const name = read.replace(new RegExp(`\u0000`, `ig`), ``)
+  return name
+}
+// 使用指定打印机名称打印 base64
+async function printByName({printerName, base64} = {}) {
+  base64 = base64.replace(`data:image/png;base64,`, ``)
+  let [, read] = await window.shim.ws.call(
+    `run`,
+    [
+      `
+        var arg = ...
+        var printer = sys.printer(arg.printerName);
+        var pdc = printer.createDevice(
+            dmPaperSize = 9/*_DMPAPER_A4*/; //A4 纸
+            dmOrientation = 1;//横向打印为2,纵向打印为1 
+        );
+        pdc.start(
+            function(hdcPrinter,rc){
+                import gdip.graphics; 
+                import gdip.bitmap; 
+                var graphics = gdip.graphics(hdcPrinter);
+                var buffer = crypt.decodeBin(arg.base64)
+                var bmp = gdip.bitmap(buffer); 
+                //使用图片dpi绘图
+                graphics.drawImageWithDpi(bmp,0,0);
+            }
+        ); 
+        
+      `,
+      {
+        printerName,
+        base64,
+      },
+    ],
+  )
 }

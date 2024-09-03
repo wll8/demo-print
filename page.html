@@ -7,7 +7,7 @@
   <body>
     <div>
       <button onclick="tool.view(source, target)">预览</button>
-      <button onclick="tool.print(source)">打印</button>
+      <button onclick="print()">打印</button>
       <hr />
       <div class="printPre">打印预览区</div>
       <hr />
@@ -34,9 +34,18 @@
     <script>
       window.source = document.querySelector(`#printBox`)
       window.target = document.querySelector(`.printPre`)
+      function print() {
+        tool.print(window.source, {
+          printerName: `HP OfficeJet Pro 8020 series [59A334]`,
+          type: `A4`,
+        })
+      }
     </script>
   </body>
   <style>
+    .printPre {
+      background-color: #f00;
+    }
     .printBox {
       border: 1px solid #000;
       display: inline-block;
