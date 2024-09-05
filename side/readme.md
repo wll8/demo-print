@@ -66,6 +66,8 @@ https://juejin.cn/post/7201048368389603386?searchId=2023122903480143EF4CF003D094
 
 https://stackoverflow.com/questions/14488849/higher-dpi-graphics-with-html5-canvas // 图片 dpi 设置
 
+https://mendelson.org/pdftoprinter.html // 从命令行打印 pdf
+
 - node-escpos 报错
 - 打印图片不清晰
 - 打印 html 不会结束
